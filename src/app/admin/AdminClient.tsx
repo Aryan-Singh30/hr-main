@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession, signOut } from 'next-auth/react'
 import { Button, Card, CardHeader, CardBody, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell } from '@heroui/react'
 import { Avatar } from '@/components/Avatar'
 import { approveLeave, rejectLeave, generatePayroll } from './actions'
@@ -46,6 +47,8 @@ export function AdminClient({
   currentYear,
   months,
 }: AdminClientProps) {
+  const { data: session, status } = useSession()
+  
   const currencyFormatter = new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
@@ -57,14 +60,43 @@ export function AdminClient({
     year: 'numeric',
   })
 
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/sign-in' })
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-slate-600">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!session || session.user?.role !== 'ADMIN') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-red-600">Access denied. Admin privileges required.</div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       {/* Header Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Admin Control Center</h1>
-          <p className="text-slate-500 mt-1">Manage staff, leave requests, and payroll from one place.</p>
+          <p className="text-slate-500 mt-1">Welcome, {session.user?.name || 'Admin'} - Manage staff, leave requests, and payroll.</p>
         </div>
+        <Button
+          color="danger"
+          variant="flat"
+          size="sm"
+          onClick={handleSignOut}
+          className="font-medium"
+        >
+          Sign Out
+        </Button>
       </div>
 
       <Card className="border border-slate-200 shadow-sm">

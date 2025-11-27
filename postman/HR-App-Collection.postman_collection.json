@@ -1,0 +1,650 @@
+{
+	"info": {
+		"_postman_id": "hr-app-collection-2025",
+		"name": "HR Application API",
+		"description": "Complete API testing collection for HR Management System",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "1. Get CSRF Token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"pm.environment.set(\"csrfToken\", response.csrfToken);",
+									"pm.test(\"CSRF token received\", function () {",
+									"    pm.expect(response.csrfToken).to.exist;",
+									"});",
+									"console.log(\"CSRF Token:\", response.csrfToken);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/csrf",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "csrf"]
+						},
+						"description": "Fetch CSRF token required for NextAuth authentication"
+					},
+					"response": []
+				},
+				{
+					"name": "2. Sign In (Admin)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302 or 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+									"});",
+									"",
+									"const cookies = pm.cookies.toObject();",
+									"if (cookies['next-auth.session-token']) {",
+									"    pm.environment.set(\"sessionToken\", cookies['next-auth.session-token']);",
+									"    console.log(\"Session token saved:\", cookies['next-auth.session-token']);",
+									"} else if (cookies['__Secure-next-auth.session-token']) {",
+									"    pm.environment.set(\"sessionToken\", cookies['__Secure-next-auth.session-token']);",
+									"    console.log(\"Secure session token saved\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "admin@local.dev",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "Admin123!",
+									"type": "text"
+								},
+								{
+									"key": "csrfToken",
+									"value": "{{csrfToken}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/callback/credentials",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "callback", "credentials"]
+						},
+						"description": "Sign in with admin credentials"
+					},
+					"response": []
+				},
+				{
+					"name": "2b. Sign In (Employee)",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 302 or 200\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+									"});",
+									"",
+									"const cookies = pm.cookies.toObject();",
+									"if (cookies['next-auth.session-token']) {",
+									"    pm.environment.set(\"sessionToken\", cookies['next-auth.session-token']);",
+									"    console.log(\"Session token saved:\", cookies['next-auth.session-token']);",
+									"} else if (cookies['__Secure-next-auth.session-token']) {",
+									"    pm.environment.set(\"sessionToken\", cookies['__Secure-next-auth.session-token']);",
+									"    console.log(\"Secure session token saved\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "email",
+									"value": "employee@local.dev",
+									"type": "text"
+								},
+								{
+									"key": "password",
+									"value": "Employee123!",
+									"type": "text"
+								},
+								{
+									"key": "csrfToken",
+									"value": "{{csrfToken}}",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/callback/credentials",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "callback", "credentials"]
+						},
+						"description": "Sign in with employee credentials"
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Session",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"pm.test(\"Session exists\", function () {",
+									"    pm.expect(response.user).to.exist;",
+									"});",
+									"pm.test(\"User has email\", function () {",
+									"    pm.expect(response.user.email).to.exist;",
+									"});",
+									"console.log(\"Logged in as:\", response.user.email, \"Role:\", response.user.role);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/session",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "session"]
+						},
+						"description": "Verify current session and user details"
+					},
+					"response": []
+				},
+				{
+					"name": "9. Sign Out",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Sign out successful\", function () {",
+									"    pm.expect(pm.response.code).to.be.oneOf([200, 302]);",
+									"});",
+									"pm.environment.set(\"sessionToken\", \"\");",
+									"console.log(\"Signed out successfully\");"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"csrfToken\": \"{{csrfToken}}\",\n  \"callbackUrl\": \"{{baseUrl}}/sign-in\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/auth/signout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "auth", "signout"]
+						},
+						"description": "Sign out and clear session"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employee - Attendance",
+			"item": [
+				{
+					"name": "4. Clock In",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Clock in successful\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set(\"attendanceId\", response.data.id);",
+									"}",
+									"console.log(\"Clocked in at:\", response.data.clockIn);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/attendance/clock-in",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "attendance", "clock-in"]
+						},
+						"description": "Clock in for the day"
+					},
+					"response": []
+				},
+				{
+					"name": "5. Clock Out",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Clock out successful\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"console.log(\"Clocked out at:\", response.data.clockOut);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/attendance/clock-out",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "attendance", "clock-out"]
+						},
+						"description": "Clock out for the day"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Employee - Leave",
+			"item": [
+				{
+					"name": "6. Request Leave",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Leave request created\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"if (response.data && response.data.id) {",
+									"    pm.environment.set(\"leaveRequestId\", response.data.id);",
+									"}",
+									"console.log(\"Leave request ID:\", response.data.id);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"startDate\": \"2025-12-01\",\n  \"endDate\": \"2025-12-03\",\n  \"reason\": \"Family vacation\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/leave/request",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "leave", "request"]
+						},
+						"description": "Submit a leave request"
+					},
+					"response": []
+				},
+				{
+					"name": "6b. Get My Leave Requests",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Leave requests retrieved\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"console.log(\"Total leave requests:\", response.data.length);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/leave/request",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "leave", "request"]
+						},
+						"description": "Get all leave requests for current user"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Users",
+			"item": [
+				{
+					"name": "7. Get All Users",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Users list retrieved\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"if (response.data.length > 0) {",
+									"    pm.environment.set(\"firstUserId\", response.data[0].id);",
+									"}",
+									"console.log(\"Total users:\", response.data.length);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/users",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "users"]
+						},
+						"description": "Get all users (Admin only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Leave Management",
+			"item": [
+				{
+					"name": "8a. Approve Leave",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Leave approved\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data.status).to.equal('APPROVED');",
+									"});",
+									"console.log(\"Leave status:\", response.data.status);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"APPROVED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/leave/{{leaveRequestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "leave", "{{leaveRequestId}}"]
+						},
+						"description": "Approve a leave request (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "8b. Reject Leave",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Leave rejected\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data.status).to.equal('REJECTED');",
+									"});",
+									"console.log(\"Leave status:\", response.data.status);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"REJECTED\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/leave/{{leaveRequestId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "leave", "{{leaveRequestId}}"]
+						},
+						"description": "Reject a leave request (Admin only)"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin - Payroll",
+			"item": [
+				{
+					"name": "8c. Generate Payroll",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Payroll generated\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"});",
+									"console.log(\"Payroll amount:\", response.data.amount);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"userId\": {{firstUserId}},\n  \"month\": \"December\",\n  \"year\": 2025\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/payroll",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "payroll"]
+						},
+						"description": "Generate payroll for a user (Admin only)"
+					},
+					"response": []
+				},
+				{
+					"name": "8d. Get All Payrolls",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"const response = pm.response.json();",
+									"pm.test(\"Payrolls retrieved\", function () {",
+									"    pm.expect(response.success).to.be.true;",
+									"    pm.expect(response.data).to.be.an('array');",
+									"});",
+									"console.log(\"Total payrolls:\", response.data.length);"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Cookie",
+								"value": "next-auth.session-token={{sessionToken}}"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/admin/payroll",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "admin", "payroll"]
+						},
+						"description": "Get all payroll records (Admin only)"
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

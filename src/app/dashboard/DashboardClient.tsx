@@ -1,5 +1,6 @@
 'use client'
 
+import { useSession, signOut } from 'next-auth/react'
 import { Button, Card, CardHeader, CardBody, Chip, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Input, Textarea } from '@heroui/react'
 import { Avatar } from '@/components/Avatar'
 import { clockIn, clockOut, requestLeave } from './actions'
@@ -35,6 +36,8 @@ export function DashboardClient({
   recentAttendance,
   leaveRequests,
 }: DashboardClientProps) {
+  const { data: session, status } = useSession()
+  
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
@@ -46,24 +49,53 @@ export function DashboardClient({
     minute: 'numeric',
   })
 
+  const handleSignOut = async () => {
+    await signOut({ callbackUrl: '/sign-in' })
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-slate-600">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!session) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-lg text-slate-600">Please sign in to continue</div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-          <p className="text-slate-500 mt-1">Manage your daily activities and leave requests.</p>
+          <p className="text-slate-500 mt-1">Welcome back, {session.user?.name || session.user?.email}</p>
         </div>
-        <Card className="w-fit bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm">
-          <CardBody className="py-2 px-4">
-            <p className="text-sm font-medium text-slate-600">
+        <div className="flex items-center gap-4">
+          <Card className="w-fit bg-white/50 backdrop-blur-sm border border-slate-200 shadow-sm">
+            <CardBody className="py-2 px-4">
+              <p className="text-sm font-medium text-slate-600">
               Base Salary: <span className="text-indigo-600 font-bold ml-1">₹{user.baseSalary.toLocaleString('en-IN')}</span>
             </p>
           </CardBody>
         </Card>
+        <Button
+          color="danger"
+          variant="flat"
+          size="sm"
+          onClick={handleSignOut}
+          className="font-medium"
+        >
+          Sign Out
+        </Button>
       </div>
-
-      {/* Quick Actions */}
+    </div>      {/* Quick Actions */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card className="border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
           <CardHeader className="flex flex-col items-start gap-1 pb-0 px-6 pt-6">
