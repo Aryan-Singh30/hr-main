@@ -2,8 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
-// Mark this route as dynamic
+// Route segment config - prevents static optimization
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
+
+// Add a GET handler to prevent build-time issues
+export async function GET() {
+  return NextResponse.json(
+    { error: 'Method not allowed' },
+    { status: 405 }
+  )
+}
 
 export async function PATCH(
   request: NextRequest,
