@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id          Int          @id @default(autoincrement())
+  name        String?
+  email       String       @unique
+  password    String
+  role        String       @default("EMPLOYEE")
+  baseSalary  Float
+  attendances Attendance[]
+  leaves      Leave[]
+  payrolls    Payroll[]
+  createdAt   DateTime     @default(now())
+}
+
+model Attendance {
+  id       Int      @id @default(autoincrement())
+  user     User     @relation(fields: [userId], references: [id])
+  userId   Int
+  date     DateTime
+  clockIn  DateTime
+  clockOut DateTime?
+}
+
+model Leave {
+  id        Int         @id @default(autoincrement())
+  user      User        @relation(fields: [userId], references: [id])
+  userId    Int
+  startDate DateTime
+  endDate   DateTime
+  reason    String
+  status    String      @default("PENDING")
+  createdAt DateTime    @default(now())
+}
+
+model Payroll {
+  id        Int           @id @default(autoincrement())
+  user      User          @relation(fields: [userId], references: [id])
+  userId    Int
+  month     String
+  year      Int
+  amount    Float
+  status    String        @default("UNPAID")
+  createdAt DateTime      @default(now())
+}
